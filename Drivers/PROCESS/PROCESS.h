@@ -4,6 +4,7 @@
  *  Created on: Nov 25, 2020
  *      Author: fw_tien
  */
+#ifdef __cplusplus
 
 #ifndef PROCESS_PROCESS_H_
 #define PROCESS_PROCESS_H_
@@ -99,9 +100,20 @@ typedef struct
 
 extern PROCESS_typedef SENSOR_HUB;
 
-void PROCESS_led(void);
-void PROCESS_init(void);
-void PROCESS_app(void);
-void vApplicationTickHook(void);
+//void PROCESS_led(void);
+//void PROCESS_init(void);
+//void PROCESS_app(void);
+//void vApplicationTickHook(void);
+
+class PROCESS{
+
+public:
+	void led(void);
+	void init(void);
+	void app(void);
+};
+
+extern PROCESS aa;
 
 #endif /* PROCESS_PROCESS_H_ */
+#endif

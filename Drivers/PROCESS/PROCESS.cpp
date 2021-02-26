@@ -5,7 +5,7 @@
  *      Author: fw_tien
  */
 
-#include "PROCESS/PROCESS.h"
+#include <PROCESS/PROCESS.h>
 
 PROCESS_typedef SENSOR_HUB;
 PACKET_typedef PACKET_RF;
@@ -16,13 +16,14 @@ PROCESS_LED_typedef LED;
 void LCD0_Task(void * pvParameters);
 void LCD1_Task(void * pvParameters);
 
+PROCESS aa;
 
 void vApplicationTickHook(void)
 {
 
 }
 
-void PROCESS_init(void)
+void PROCESS::init(void)
 {
 //	TIMEOUT_init();
 	ILI9431_init();
@@ -36,7 +37,7 @@ void PROCESS_init(void)
 	vTaskStartScheduler();
 }
 
-void PROCESS_led(void)
+void PROCESS::led(void)
 {
 	static uint8_t a = 0;
     if(TIMEOUT_gettick_ms() - LED.time_start > LED.time_cycle)
@@ -56,7 +57,7 @@ void PROCESS_led(void)
 }
 
 
-void PROCESS_app(void)
+void PROCESS::app(void)
 {
 	Delay_ms(200);
 	DISPLAY_scr_fill(0, 0, 320, 240, 0x0000);
@@ -68,9 +69,10 @@ void PROCESS_app(void)
 
 void LCD0_Task(void * pvParameters)
 {
+
 	while (1)
 	{
-		PROCESS_led();
+		aa.led();
 	}
 }
 
@@ -82,8 +84,6 @@ void LCD1_Task(void * pvParameters)
 		vTaskDelay(1500/ portTICK_RATE_MS);
 	}
 }
-
-
 
 
 
