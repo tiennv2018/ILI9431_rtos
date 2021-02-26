@@ -1,0 +1,6 @@
+XPT2046.c:22:6:XPT2046_set_gpio	48	static
+XPT2046.c:81:10:XPT2046_read_x	16	static
+XPT2046.c:100:10:XPT2046_read_y	16	static
+XPT2046.c:119:6:XPT2046_read_cursor	24	static
+XPT2046.c:138:6:XPT2046_delay	16	static
+XPT2046.c:143:9:XPT2046_rev_tranfer_byte	16	static

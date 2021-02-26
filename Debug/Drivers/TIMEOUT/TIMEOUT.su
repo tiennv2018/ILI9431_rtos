@@ -1,0 +1,10 @@
+core_cm3.h:1014:22:NVIC_SetPriority	16	static
+core_cm3.h:1139:26:SysTick_Config	16	static
+TIMEOUT.c:17:6:TIMEOUT_init	8	static
+TIMEOUT.c:26:6:TIMEOUT_transfer_reader_start	16	static
+TIMEOUT.c:34:6:TIMEOUT_recevice_reader_start	16	static
+TIMEOUT.c:42:6:TIMEOUT_transfer_reader_stop	8	static
+TIMEOUT.c:54:6:TIMEOUT_recevice_reader_stop	8	static
+TIMEOUT.c:66:10:TIMEOUT_gettick_ms	4	static
+TIMEOUT.c:71:6:TIMEOUT_delay_us	24	static
+TIMEOUT.c:77:6:TIMEOUT_delay_ms	24	static

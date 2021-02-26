@@ -1,0 +1,2 @@
+DISPLAY.c:14:6:DISPLAY_point_color	16	static
+DISPLAY.c:19:6:DISPLAY_scr_fill	32	static
