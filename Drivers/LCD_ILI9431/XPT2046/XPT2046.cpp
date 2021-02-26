@@ -52,9 +52,9 @@ void XPT2046_set_gpio(void)
 
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = XPT2046_IRQ_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 8;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = XPT2046_IRQ_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
 	Set_CS();

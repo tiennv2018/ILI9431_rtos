@@ -45,7 +45,7 @@ void PROCESS_led(void)
     	if(a == 0)
 		{
     		a = 1;
-			DISPLAY_scr_fill(0, 0, 320, 240, 0x0000);
+			DISPLAY_scr_fill(0, 0, 320, 240, 0xFFFF);
 		}
     	else
     	{

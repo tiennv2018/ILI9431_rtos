@@ -6,12 +6,7 @@
  */
 #include "PROCESS/PROCESS.h"
 
-TIMEOUT_typedef TIMEOUT =
-{
-    .tick_ms.count_tick = 0,
-    .rec_reader.flag   = TIMEOUT_FLAG_INACTIVE,
-    .rec_reader.state  = TIMEOUT_STATE_STOP,
-};
+TIMEOUT_typedef TIMEOUT;
 
 
 void TIMEOUT_init(void)

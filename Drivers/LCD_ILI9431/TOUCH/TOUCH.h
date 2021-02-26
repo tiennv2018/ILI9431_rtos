@@ -27,7 +27,7 @@ typedef struct {
 	MATRIX_st matrix;
 }TOUCH_cursor_st;
 
-TOUCH_cursor_st TOUCH_st;
+extern TOUCH_cursor_st TOUCH_st;
 
 
 #endif /* LCD_ILI9431_TOUCH_TOUCH_H_ */
