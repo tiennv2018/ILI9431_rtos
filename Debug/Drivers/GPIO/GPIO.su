@@ -1,2 +1,0 @@
-GPIO.c:12:6:GPIO_init	8	static
-GPIO.c:57:6:GPIO_set	16	static

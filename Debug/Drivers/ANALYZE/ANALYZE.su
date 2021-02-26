@@ -1,3 +1,0 @@
-ANALYZE.c:13:9:ANALYZE_packet	24	static
-ANALYZE.c:42:9:ANALYZE_checksum_decode	24	static
-ANALYZE.c:58:9:ANALYZE_checksum_encode	24	static

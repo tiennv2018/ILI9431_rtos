@@ -1,6 +1,0 @@
-ENCODE.c:18:9:ENCODE_get_checksum	24	static
-ENCODE.c:30:9:ENCODE_check_checksum	16	static
-ENCODE.c:39:9:ENCODE_string_2_hex	32	static
-ENCODE.c:71:9:ENCODE_hex_2_string	32	static
-ENCODE.c:91:10:ENCODE_double_to_scale	40	static
-ENCODE.c:173:10:ENCODE_scale_to_double	40	static

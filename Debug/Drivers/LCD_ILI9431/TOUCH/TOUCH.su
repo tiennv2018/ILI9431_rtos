@@ -1,3 +1,0 @@
-TOUCH.c:12:9:TOUCH_calibration_Matrix	24	static
-TOUCH.c:41:9:TOUCH_mode_calib	4	static
-TOUCH.c:52:6:TOUCH_get_point	8	static
