@@ -8,7 +8,7 @@
 
 
 void DISPLAY_point_color(uint16_t color);
-void DISPLAY_scr_fill(uint16_t sx,uint16_t sy, uint16_t ex,u16 ey,uint16_t color);
+void DISPLAY_scr_fill(uint16_t sx,uint16_t sy, uint16_t ex,uint16_t ey,uint16_t color);
 
 
 void DISPLAY_point_color(uint16_t color)
@@ -16,7 +16,7 @@ void DISPLAY_point_color(uint16_t color)
 	ILI9431_write_data(color);
 }
 
-void DISPLAY_scr_fill(uint16_t sx,uint16_t sy, uint16_t ex,u16 ey,uint16_t color)
+void DISPLAY_scr_fill(uint16_t sx,uint16_t sy, uint16_t ex,uint16_t ey,uint16_t color)
 {
 	uint32_t i;
 	uint16_t width=ex-sx+1;

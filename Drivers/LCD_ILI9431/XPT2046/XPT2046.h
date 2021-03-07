@@ -11,22 +11,22 @@
 #define	CHX 	0x90
 #define	CHY 	0xD0
 
-#define XPT2046_MISO_PIN	 		GPIO_Pin_14
-#define XPT2046_MOSI_PIN	  		GPIO_Pin_15
-#define XPT2046_SCK_PIN		  		GPIO_Pin_13
+#define XPT2046_MISO_PIN	 		//GPIO_PIN_14
+#define XPT2046_MOSI_PIN	  		//GPIO_PIN_15
+#define XPT2046_SCK_PIN		  		//GPIO_PIN_13
 
-#define XPT2046_CS_PIN		  		GPIO_Pin_10
-#define XPT2046_GPIO_RCC_PORT		RCC_APB2Periph_GPIOB
+#define XPT2046_CS_PIN		  		//GPIO_PIN_10
+#define XPT2046_GPIO_RCC_PORT		//RCC_APB2Periph_GPIOB
 
-#define XPT2046_IRQ_PIN		  		GPIO_Pin_11
-#define XPT2046_IRQ_GPIO_PORT		GPIOB
-#define XPT2046_IRQ_GPIO_RCC_PORT	RCC_APB2Periph_GPIOB
+#define XPT2046_IRQ_PIN		  		//GPIO_PIN_11
+#define XPT2046_IRQ_GPIO_PORT		//GPIOB
+#define XPT2046_IRQ_GPIO_RCC_PORT	//RCC_APB2Periph_GPIOB
 
-#define XPT2046_EXT_GPIO_PortSource				GPIO_PortSourceGPIOB
-#define XPT2046_EXT_GPIO_PinSource				GPIO_PinSource11
+#define XPT2046_EXT_GPIO_PortSource				//GPIO_PortSourceGPIOB
+#define XPT2046_EXT_GPIO_PinSource				//GPIO_PinSource11
 
-#define Set_CS()      				GPIO_SetBits(GPIOB, XPT2046_CS_PIN);
-#define Reset_CS() 					GPIO_ResetBits(GPIOB, XPT2046_CS_PIN);
+#define Set_CS()      				//GPIO_SetBits(GPIOB, XPT2046_CS_PIN);
+#define Reset_CS() 					//GPIO_ResetBits(GPIOB, XPT2046_CS_PIN);
 
 #define XPT2046_IRQ_PRIORITY 		8
 

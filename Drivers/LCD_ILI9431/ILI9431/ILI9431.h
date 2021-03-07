@@ -8,6 +8,8 @@
 #ifndef LCD_ILI9431_ILI9431_H_
 #define LCD_ILI9431_ILI9431_H_
 
+#include "stm32f1xx.h"
+
 #define LCD_GPIO_PIN_CS			GPIO_Pin_7
 #define LCD_GPIO_PIN_RS			GPIO_Pin_6
 #define LCD_GPIO_PIN_WR			GPIO_Pin_5
@@ -52,17 +54,17 @@ extern ILI9431_infor_st ILI9431;
 
 typedef struct
 {
-	u16 LCD_REG;
-	u16 LCD_RAM;
+	uint16_t LCD_REG;
+	uint16_t LCD_RAM;
 } LCD_TypeDef;
 
 
-#define LCD_BASE        ((u32)(0x6C000000 | 0x000007FE))
-#define LCD             ((LCD_TypeDef *) LCD_BASE)
+#define LCD_BASE        //((u32)(0x6C000000 | 0x000007FE))
+#define LCD             //((LCD_TypeDef *) LCD_BASE)
 
 extern void ILI9431_init(void);
 
 extern void ILI9431_write_data(uint16_t data);
-extern void ILI9431_set_windows(u16 xStar, u16 yStar,u16 xEnd,u16 yEnd);
+extern void ILI9431_set_windows(uint16_t xStar, uint16_t yStar,uint16_t xEnd,uint16_t yEnd);
 
 #endif /* LCD_ILI9431_ILI9431_H_ */

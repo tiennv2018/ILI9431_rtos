@@ -16,14 +16,14 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-#include <stm32f10x.h>
+#include <main.h>
 #include <stm32f1xx_it.h>
-#include <stm32f10x_conf.h>
+//#include <stm32f10x_conf.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
-#include <misc.h>
+
 
 #include <GPIO/GPIO.h>
 #include <SPI/SPI.h>

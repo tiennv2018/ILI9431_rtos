@@ -19,12 +19,13 @@
 
 uint8_t SPI_SendReceiveByte(SPI_TypeDef* SPIx, uint8_t data)
 {
-	uint8_t retry = 200;
-	while((SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_TXE) == RESET) && retry--);
-	SPI_I2S_SendData(SPIx, data);
-	retry = 200;
-	while((SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_RXNE) == RESET) && retry--);
-	return SPI_I2S_ReceiveData(SPIx);
+//	uint8_t retry = 200;
+//	while((SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_TXE) == RESET) && retry--);
+//	SPI_I2S_SendData(SPIx, data);
+//	retry = 200;
+//	while((SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_RXNE) == RESET) && retry--);
+//	return SPI_I2S_ReceiveData(SPIx);
+	return 0;
 }
 
 

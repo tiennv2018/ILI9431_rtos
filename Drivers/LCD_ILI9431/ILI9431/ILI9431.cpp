@@ -19,7 +19,7 @@ void ILI9431_write_Reg_Data(uint8_t LCD_Reg, uint8_t LCD_RegValue);
 uint16_t ILI9431_read_word(void);
 
 void ILI9431_set_cur(uint16_t Xpos, uint16_t Ypos);
-void ILI9431_set_windows(u16 xStar, u16 yStar,u16 xEnd,u16 yEnd);
+void ILI9431_set_windows(uint16_t xStar, uint16_t yStar,uint16_t xEnd,uint16_t yEnd);
 
 
 void ILI9431_point_color(uint16_t color);
@@ -32,23 +32,23 @@ ILI9431_infor_st ILI9431;
 
 void ILI9431_set_gpio(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD|RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE);
-
-	GPIO_InitStructure.GPIO_Pin 	= LCD_GPIO_PIN_RST | LCD_GPIO_PIN_RD | LCD_GPIO_PIN_WR | LCD_GPIO_PIN_RS | LCD_GPIO_PIN_CS | LCD_GPIO_LED;	   //GPIO_Pin_10
-	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
-	GPIO_Init(LCD_GPIO_PORT_SET, &GPIO_InitStructure);
-
-	GPIO_SetBits(LCD_GPIO_PORT_SET, LCD_GPIO_PIN_RST | LCD_GPIO_PIN_RD | LCD_GPIO_PIN_WR | LCD_GPIO_PIN_RS | LCD_GPIO_PIN_CS);
-
-	GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_All;
-	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
-
-	GPIO_Init(GPIOD, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOD,GPIO_Pin_All);
+//	GPIO_InitTypeDef GPIO_InitStructure;
+//
+//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD|RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE);
+//
+//	GPIO_InitStructure.GPIO_Pin 	= LCD_GPIO_PIN_RST | LCD_GPIO_PIN_RD | LCD_GPIO_PIN_WR | LCD_GPIO_PIN_RS | LCD_GPIO_PIN_CS | LCD_GPIO_LED;	   //GPIO_Pin_10
+//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_Out_PP;
+//	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
+//	GPIO_Init(LCD_GPIO_PORT_SET, &GPIO_InitStructure);
+//
+//	GPIO_SetBits(LCD_GPIO_PORT_SET, LCD_GPIO_PIN_RST | LCD_GPIO_PIN_RD | LCD_GPIO_PIN_WR | LCD_GPIO_PIN_RS | LCD_GPIO_PIN_CS);
+//
+//	GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_All;
+//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_Out_PP;
+//	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
+//
+//	GPIO_Init(GPIOD, &GPIO_InitStructure);
+//	GPIO_SetBits(GPIOD,GPIO_Pin_All);
 }
 
 void ILI9431_reset(void)
@@ -61,7 +61,7 @@ void ILI9431_reset(void)
 
 uint16_t ILI9431_read_word(void)
 {
-	return LCD->LCD_RAM;
+//	return LCD->LCD_RAM;
 }
 
 void ILI9431_write_reg(uint8_t byte)
@@ -108,7 +108,7 @@ void ILI9431_set_cur(uint16_t Xpos, uint16_t Ypos)
 	ILI9431_write_ram_pre();
 }
 
-void ILI9431_set_windows(u16 xStar, u16 yStar,u16 xEnd,u16 yEnd)
+void ILI9431_set_windows(uint16_t xStar, uint16_t yStar,uint16_t xEnd,uint16_t yEnd)
 {
 	ILI9431_write_reg(ILI9431.setxcmd);
 	ILI9431_write_data(xStar>>8);

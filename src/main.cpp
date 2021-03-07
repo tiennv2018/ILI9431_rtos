@@ -23,7 +23,7 @@
 int main(void)
 {
 //	PROCESS_init();
-	aa.init();
+//	aa.init();
 
 }
 
