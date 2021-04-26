@@ -6,14 +6,14 @@
  */
 
 
+#include <BSP/3dprinter_drv/3dprinter_uart.h>
+#include <BSP/3dprinter_drv/3dprinter_wifi.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 //#include "stm32f10x.h"
 #include "stm32f1xx.h"
-#include "3dprinter_wifi.hpp"
 #include "TIMEOUT/TIMEOUT.h"
-#include "3dprinter_uart.hpp"
 
 /* Private defines -----------------------------------------------------------*/
 #define WIFI_COMMAND_MODE     (0x00)
@@ -61,7 +61,8 @@
 uint8_t gBspWifiUartRxBuffer[2*WIFI_UART_RX_BUFFER_SIZE];
 uint8_t gBspWifiUartTxBuffer[2*WIFI_UART_TX_BUFFER_SIZE];
 
-BspWifi BSP_WIFI;
+BspWifiDataType gBspWifiData;
+
 char previousString[256];
 
 /* Private function -----------------------------------------------------------*/
@@ -69,7 +70,7 @@ char previousString[256];
 uint8_t BSP_WifiParseRxBytes(uint8_t offset, uint8_t nbBytes);
 void BSP_WifiRestart(void);
 
-//#if defined(PROD_TEST)
+#if defined(PROD_TEST)
 /******************************************************//**
  * @brief  Wifi Hw initialisation
  * @param baudRate UART baud rate used between the main stm32
@@ -80,7 +81,7 @@ void BSP_WifiRestart(void);
  * @param fsVersionExpected expected version of the wifi module file system
  * @retval None
  **********************************************************/
-void BspWifi::HwInit(uint32_t baudRate, char* ssid, char* wepKey, char* expectedFwVersion, char* expectedFsVersion)
+void BspWifi_HwInit(uint32_t baudRate, char* ssid, char* wepKey, char* expectedFwVersion, char* expectedFsVersion)
 {
   BspWifiDataType *pWifi = &gBspWifiData;
 
@@ -88,9 +89,10 @@ void BspWifi::HwInit(uint32_t baudRate, char* ssid, char* wepKey, char* expected
   strcpy(pWifi->wepKey,wepKey);
   strcpy(pWifi->expectedFwVersion,expectedFwVersion);
   strcpy(pWifi->expectedFsVersion,expectedFsVersion);
-  BspWifi::GpioInit();
-  BspWifi::UartInit(baudRate);
+  BspWifi_GpioInit();
+  BspWifi_UartInit(baudRate);
 }
+#else //#if defined(PROD_TEST)
 
 /******************************************************//**
  * @brief  Wifi Hw initialisation
@@ -100,22 +102,23 @@ void BspWifi::HwInit(uint32_t baudRate, char* ssid, char* wepKey, char* expected
  * @param wepKey wifi module WEP KEY
  * @retval None
  **********************************************************/
-void BspWifi::HwInit(uint32_t baudRate, char* ssid, char* wepKey)
+void BspWifi_HwInit(uint32_t baudRate, char* ssid, char* wepKey)
 {
   BspWifiDataType *pWifi = &gBspWifiData;
 
   strcpy(pWifi->ssid,ssid);
   strcpy(pWifi->wepKey,wepKey);
-  BspWifi::GpioInit();
-  BspWifi::UartInit(baudRate);
+  BspWifi_GpioInit();
+  BspWifi_UartInit(baudRate);
 }
+#endif //#else //#if defined(PROD_TEST)
 
 /******************************************************//**
  * @brief  Initialisation of the GPIOs for WIFI module
  * @param None
  * @retval None
  **********************************************************/
-void BspWifi::GpioInit(void)
+void BspWifi_GpioInit(void)
 {
 //  GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -146,7 +149,7 @@ void BspWifi::GpioInit(void)
  * @param[in] baudRate UART baud rate
  * @retval None
  **********************************************************/
-void BspWifi::UartInit(uint32_t baudRate)
+void BspWifi_UartInit(uint32_t baudRate)
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
 
@@ -199,7 +202,7 @@ void BspWifi::UartInit(uint32_t baudRate)
  * @param[in] UartHandle UART handle
  * @retval None
  **********************************************************/
-void BspWifi::UartTxCpltCallback(void *UartHandle)
+void BspWifi_UartTxCpltCallback(void *UartHandle)
 {
   BspWifiDataType *pWifi = &gBspWifiData;
   pWifi->txFlag = RESET;
@@ -211,7 +214,7 @@ void BspWifi::UartTxCpltCallback(void *UartHandle)
  * @param[in] pointer to WIFI uart RX buffer pointer
  * @retval result number of bytes to copy to UART debug RX
  **********************************************************/
-uint8_t BspWifi::UartRxCpltCallback(void *UartHandle,\
+uint8_t BspWifi_UartRxCpltCallback(void *UartHandle,\
   unsigned char **c)
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
@@ -274,7 +277,7 @@ uint8_t BspWifi::UartRxCpltCallback(void *UartHandle,\
  * @param nbBytes number of bytes to parse
  * @retval result number of bytes to copy to UART debug RX
 **********************************************************/
-uint8_t BspWifi::ParseRxBytes(uint8_t offset, uint8_t nbBytes)
+uint8_t BspWifi_ParseRxBytes(uint8_t offset, uint8_t nbBytes)
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
 	uint8_t result = 0;
@@ -540,7 +543,7 @@ uint8_t BspWifi::ParseRxBytes(uint8_t offset, uint8_t nbBytes)
  * @param source from where the function call comes
  * @retval
 **********************************************************/
-uint8_t BspWifi::ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,\
+uint8_t BspWifi_ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,\
   uint8_t source)
 {
   BspWifiDataType *pWifi = &gBspWifiData;
@@ -567,7 +570,7 @@ uint8_t BspWifi::ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,\
             previousString[nbTxBytes+1]='\0';
           }
           else if (\
-        		  BspWifi::CreateFileInWifiModuleRam("gcf_list.html",nbTxBytes)==\
+        		  BspWifi_CreateFileInWifiModuleRam("gcf_list.html",nbTxBytes)==\
             BSP_WIFI_FILE_CREATION_OK)
     {
             pWifi->fileCreationPending = 0;
@@ -721,7 +724,7 @@ uint8_t BspWifi::ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,\
  * directly or through BSP_WifiParseTxByteswhen if a new line
  * has been received on the UART debug
 **********************************************************/
-void BspWifi::ProcessUartBytes(void)
+void BspWifi_ProcessUartBytes(void)
 {
   BspWifiDataType *pWifi = &gBspWifiData;
   uint16_t nbBytes;
@@ -763,7 +766,7 @@ void BspWifi::ProcessUartBytes(void)
       {
         strcpy((char *)pWifi->pRxReadBuffer,\
           "\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n");
-        BSP_UART.IfQueueTxData(pWifi->pRxReadBuffer,\
+        BspUart_IfQueueTxData(pWifi->pRxReadBuffer,\
           strlen("\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n"));
         pWifi->pRxReadBuffer += (strlen(\
           "\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n") - 2);
@@ -1085,7 +1088,7 @@ void BspWifi::ProcessUartBytes(void)
  * @param None
  * @retval None
  **********************************************************/
-void BspWifi::Restart(void)
+void BspWifi_Restart(void)
 {
 //  HAL_Delay(100);
   TIMEOUT_delay_ms(100);
@@ -1104,7 +1107,7 @@ void BspWifi::Restart(void)
 * @retval BSP_WIFI_FILE_CREATION_OK, BSP_WIFI_FILE_SIZE_TOO_BIG or
 * BSP_WIFI_FILE_NAME_TOO_LONG
 **********************************************************/
-uint8_t BspWifi::CreateFileInWifiModuleRam(const char* fileName,\
+uint8_t BspWifi_CreateFileInWifiModuleRam(const char* fileName,\
  uint16_t fileSizeWithoutHttpHeader)
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
@@ -1121,7 +1124,7 @@ uint8_t BspWifi::CreateFileInWifiModuleRam(const char* fileName,\
 	{
 		/* Escape from data mode */
 		pWifi->mode = WIFI_DATA_MODE;
-		BspWifi::ParseTxBytes("AT+S.\r", strlen("AT+S.\r"), BSP_WIFI_SOURCE_IS_PLATFORM);
+		BspWifi_ParseTxBytes("AT+S.\r", strlen("AT+S.\r"), BSP_WIFI_SOURCE_IS_PLATFORM);
 		while (pWifi->mode!=WIFI_COMMAND_MODE);
 	}
 	else
@@ -1131,22 +1134,22 @@ uint8_t BspWifi::CreateFileInWifiModuleRam(const char* fileName,\
 	/* Delete the file in the WIFI module RAM if any */
 	strcat(s, fileName);
 	strcat(s,"\r\n");
-	BspWifi::ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
+	BspWifi_ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
 	while (pWifi->commandPending!=0);
 	/* Create the file in the WIFI module RAM */
 	strcpy(s, "AT+S.FSC=/");
 	strcat(s, fileName);
 	ptr = s + strlen(s);
 	sprintf(ptr, ",%d\r\n",WIFI_FILE_MAX_SIZE);
-	BspWifi::ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
+	BspWifi_ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
 	while (pWifi->commandPending!=0)
 	/* Append the file in the WIFI module RAM */
 	strcpy(s, "AT+S.FSA=/");
 	strcat(s, fileName);
 	ptr = s + strlen(s);
 	sprintf(ptr, ",%d\r\n",fileSize);
-	BspWifi::ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
-	BspWifi::ParseTxBytes(configFileTop, strlen(configFileTop),\
+	BspWifi_ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
+	BspWifi_ParseTxBytes(configFileTop, strlen(configFileTop),\
 	BSP_WIFI_SOURCE_IS_PLATFORM);
 
 	return BSP_WIFI_FILE_CREATION_OK;
@@ -1159,7 +1162,7 @@ uint8_t BspWifi::CreateFileInWifiModuleRam(const char* fileName,\
 * @retval BSP_WIFI_FILE_CREATION_OK, BSP_WIFI_FILE_SIZE_TOO_BIG or
 * BSP_WIFI_FILE_NAME_TOO_LONG
 **********************************************************/
-uint8_t BspWifi::IsFileCreation(void)
+uint8_t BspWifi_IsFileCreation(void)
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
 	return pWifi->fileCreationPending;

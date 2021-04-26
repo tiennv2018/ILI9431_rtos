@@ -5,8 +5,8 @@
  *      Author: snk-tien
  */
 
-#ifndef BSP_3DPRINTER_DRV_3DPRINTER_ADC_HPP_
-#define BSP_3DPRINTER_DRV_3DPRINTER_ADC_HPP_
+#ifndef BSP_3DPRINTER_DRV_3DPRINTER_ADC_H_
+#define BSP_3DPRINTER_DRV_3DPRINTER_ADC_H_
 
 #ifdef __cplusplus
  extern "C" {
@@ -92,4 +92,4 @@ uint16_t BSP_AdcGetValue(uint8_t rankId);
 
 
 
-#endif /* BSP_3DPRINTER_DRV_3DPRINTER_ADC_HPP_ */
+#endif /* BSP_3DPRINTER_DRV_3DPRINTER_ADC_H_ */

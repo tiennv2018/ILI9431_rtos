@@ -5,8 +5,8 @@
  *      Author: snk-tien
  */
 
-#ifndef BSP_3DPRINTER_DRV_3DPRINTER_MISC_HPP_
-#define BSP_3DPRINTER_DRV_3DPRINTER_MISC_HPP_
+#ifndef BSP_3DPRINTER_DRV_3DPRINTER_MISC_H_
+#define BSP_3DPRINTER_DRV_3DPRINTER_MISC_H_
 
 
 #ifdef __cplusplus
@@ -293,4 +293,4 @@ void BSP_MiscUserGpioInit(uint8_t id, uint32_t mode, uint32_t pull);
 }
 #endif
 
-#endif /* BSP_3DPRINTER_DRV_3DPRINTER_MISC_HPP_ */
+#endif /* BSP_3DPRINTER_DRV_3DPRINTER_MISC_H_ */

@@ -16,14 +16,13 @@ PROCESS_LED_typedef LED;
 void LCD0_Task(void * pvParameters);
 void LCD1_Task(void * pvParameters);
 
-PROCESS aa;
 
 void vApplicationTickHook(void)
 {
 
 }
 
-void PROCESS::init(void)
+void PROCESS_init(void)
 {
 //	TIMEOUT_init();
 	ILI9431_init();
@@ -37,7 +36,7 @@ void PROCESS::init(void)
 	vTaskStartScheduler();
 }
 
-void PROCESS::led(void)
+void PROCESS_led(void)
 {
 	static uint8_t a = 0;
     if(TIMEOUT_gettick_ms() - LED.time_start > LED.time_cycle)
@@ -57,7 +56,7 @@ void PROCESS::led(void)
 }
 
 
-void PROCESS::app(void)
+void PROCESS_app(void)
 {
 	Delay_ms(200);
 	DISPLAY_scr_fill(0, 0, 320, 240, 0x0000);
@@ -72,7 +71,7 @@ void LCD0_Task(void * pvParameters)
 
 	while (1)
 	{
-		aa.led();
+		PROCESS_led();
 	}
 }
 

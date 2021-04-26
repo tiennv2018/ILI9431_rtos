@@ -5,12 +5,12 @@
  *      Author: snk-tien
  */
 
+#include <BSP/3dprinter_drv/3dprinter_adc.h>
+#include <BSP/3dprinter_drv/3dprinter_misc.h>
+#include <BSP/3dprinter_drv/3dprinter_motor.h>
 #include "string.h"
 #include <stdio.h>
 
-#include "3dprinter_misc.hpp"
-#include "3dprinter_motor.hpp"
-#include "3dprinter_adc.hpp"
 
 /* Private defines ----------------------------------------------------------*/
 #define HEAT_TIMER_PRESCALER  (1024)

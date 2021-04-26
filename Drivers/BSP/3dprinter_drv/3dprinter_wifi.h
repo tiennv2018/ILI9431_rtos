@@ -106,65 +106,59 @@
 
 /* Exported types --- --------------------------------------------------------*/
 
-class BspWifi
-{
-private :
 	void Restart(void);
-public:
-	typedef struct BspWifiDataTag
-	{
+
+typedef struct BspWifiDataTag
+{
 //		UART_HandleTypeDef uartHandle;
 //		DMA_HandleTypeDef rxDmaHandle;
 //		DMA_HandleTypeDef txDmaHandle;
-		volatile uint8_t txFlag;
-		uint8_t *pRxBuffer;
-		uint8_t *pRxWriteBuffer;
-		uint8_t *pRxReadBuffer;
-		uint8_t *pTxBuffer;
-		uint8_t *pTxWriteBuffer;
-		uint8_t mode;
-		uint8_t state;
-		uint8_t restartPending;
-		volatile uint8_t commandPending;
-		int8_t configPending;
-		uint8_t fileCreationPending;
-		uint32_t lastTime;
-		uint32_t replyCounter;
+	volatile uint8_t txFlag;
+	uint8_t *pRxBuffer;
+	uint8_t *pRxWriteBuffer;
+	uint8_t *pRxReadBuffer;
+	uint8_t *pTxBuffer;
+	uint8_t *pTxWriteBuffer;
+	uint8_t mode;
+	uint8_t state;
+	uint8_t restartPending;
+	volatile uint8_t commandPending;
+	int8_t configPending;
+	uint8_t fileCreationPending;
+	uint32_t lastTime;
+	uint32_t replyCounter;
 //#if defined(PROD_TEST)
-		uint8_t fwUpdatePending;
-		int8_t fsUpdatePending;
-		char currentFwVersion[14+1];
-		char expectedFwVersion[14+1];
-		char expectedFsVersion[21+1];
+	uint8_t fwUpdatePending;
+	int8_t fsUpdatePending;
+	char currentFwVersion[14+1];
+	char expectedFwVersion[14+1];
+	char expectedFsVersion[21+1];
 //#endif //#if defined(PROD_TEST)
-		char wepKey[13+1];
-	  char ssid[32+1];
-	}BspWifiDataType;
-
-	BspWifiDataType gBspWifiData;
-
-//#if defined(PROD_TEST)
-	void HwInit(uint32_t baudRate, char* ssid, char* wepKey, char* expectedFwVersion, char* expectedFsVersion);
-//#else
-	void HwInit(uint32_t baudRate, char* ssid, char* wepKey);
-//#endif
-	uint8_t UartRxCpltCallback(void *UartHandle,
-			unsigned char **c);
-	void UartTxCpltCallback(void *UartHandle);
-	void ProcessUartBytes(void);
-	uint8_t ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,
-			uint8_t source);
-	uint8_t ParseRxBytes(uint8_t offset, uint8_t nbBytes);
-	uint8_t CreateFileInWifiModuleRam(const char* fileName,\
-			uint16_t fileSizeWithoutHttpHeader);
-	uint8_t IsFileCreation(void);
-	void GpioInit(void);
-	void UartInit(uint32_t baudRate);
-};
-
-extern BspWifi BSP_WIFI;
+	char wepKey[13+1];
+  char ssid[32+1];
+}BspWifiDataType;
 
 
+
+#if defined(PROD_TEST)
+void BspWifi_HwInit(uint32_t baudRate, char* ssid, char* wepKey, char* expectedFwVersion, char* expectedFsVersion);
+#else
+void BspWifi_HwInit(uint32_t baudRate, char* ssid, char* wepKey);
+#endif
+uint8_t BspWifi_UartRxCpltCallback(void *UartHandle,
+		unsigned char **c);
+void BspWifi_UartTxCpltCallback(void *UartHandle);
+void BspWifi_ProcessUartBytes(void);
+uint8_t BspWifi_ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,
+		uint8_t source);
+uint8_t BspWifi_ParseRxBytes(uint8_t offset, uint8_t nbBytes);
+uint8_t BspWifi_CreateFileInWifiModuleRam(const char* fileName,\
+		uint16_t fileSizeWithoutHttpHeader);
+uint8_t BspWifi_IsFileCreation(void);
+void BspWifi_GpioInit(void);
+void BspWifi_UartInit(uint32_t baudRate);
+
+extern BspWifiDataType gBspWifiData;
 
 #ifdef __cplusplus
 }

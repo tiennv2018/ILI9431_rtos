@@ -5,13 +5,12 @@
  *      Author: snk-tien
  */
 
+#include <BSP/3dprinter_drv/3dprinter_uart.h>
+#include <BSP/3dprinter_drv/3dprinter_wifi.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include "3dprinter_uart.hpp"
-#include "3dprinter_wifi.hpp"
 
-BspUart BSP_UART;
 
 #define UART_ERROR_TAG        (0x1000)
 //#define UART_ERROR(error)     BSP_MiscErrorHandler(error|UART_ERROR_TAG)
@@ -19,7 +18,7 @@ BspUart BSP_UART;
 uint8_t gBspUartTxBuffer[2 * UART_TX_BUFFER_SIZE]; // real size is double to easily handle memcpy and tx uart
 uint8_t gBspUartRxBuffer[2 * UART_RX_BUFFER_SIZE];
 
-void BspUart::HwInit(uint32_t newBaudRate)
+void BspUart_HwInit(uint32_t newBaudRate)
 {
 
 //	USART_InitTypeDef		UART_InitStructure;
@@ -47,9 +46,9 @@ void BspUart::HwInit(uint32_t newBaudRate)
 //    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 }
 
-void BspUart::IfStart(void)
+void BspUart_IfStart(void)
 {
-	BspUart::BspUartDataType *pUart = &gBspUartData;
+	BspUartDataType *pUart = &gBspUartData;
 
 	pUart->pRxBuffer 		= (uint8_t *)gBspUartRxBuffer;
 	pUart->pRxWriteBuffer 	=  pUart->pRxBuffer;
@@ -69,17 +68,17 @@ void BspUart::IfStart(void)
 	pUart->nbBridgedBytes 	= 0;
 	pUart->gCodeDataMode 	= 0;
 
-	if(Receive_IT((uint8_t *)(&pUart->rxWriteChar), 1) != SUCCESS){
+	if(BspUart_Receive_IT((uint8_t *)(&pUart->rxWriteChar), 1) != SUCCESS){
 //		UART_ERROR(3);
 	}
 	pUart->rxBusy = SET;
 }
 
-void BspUart::IfQueueTxData(uint8_t *pBuf, uint8_t nbData)
+void BspUart_IfQueueTxData(uint8_t *pBuf, uint8_t nbData)
 {
 	if (nbData != 0)
 	{
-		BspUart::BspUartDataType *pUart= &gBspUartData;
+		BspUartDataType *pUart= &gBspUartData;
 		int32_t nbFreeBytes = pUart->pTxReadBuffer - pUart->pTxWriteBuffer;
 
 		if (nbFreeBytes <= 0)
@@ -114,7 +113,7 @@ void BspUart::IfQueueTxData(uint8_t *pBuf, uint8_t nbData)
 		  pUart->pTxWriteBuffer = pUart->pTxBuffer;
 		}
 #endif
-		BspUart::IfSendQueuedData();
+		BspUart_IfSendQueuedData();
 	}
 }
 
@@ -123,9 +122,9 @@ void BspUart::IfQueueTxData(uint8_t *pBuf, uint8_t nbData)
  * @param None
  * @retval None
  **********************************************************/
-void BspUart::IfSendQueuedData(void)
+void BspUart_IfSendQueuedData(void)
 {
-	BspUart::BspUartDataType *pUart= &gBspUartData;
+	BspUartDataType *pUart= &gBspUartData;
 #ifdef USE_XONXOFF
     if ((pUart->newTxRequestInThePipe == 0)&&
         (pUart->txBusy == RESET))
@@ -181,7 +180,7 @@ void BspUart::IfSendQueuedData(void)
 		pUart->nbTxBytesOnGoing = nbTxBytes;
 
 		//use of HAL_UART_Transmit_IT is safe as real buffer size is 2 * UART_TX_BUFFER_SIZE
-		if(Transmit_IT((uint8_t *) pUart->pTxReadBuffer, nbTxBytes)!= SUCCESS)
+		if(BspUart_Transmit_IT((uint8_t *) pUart->pTxReadBuffer, nbTxBytes)!= SUCCESS)
 		{
 //			UART_ERROR(5);
 		}
@@ -197,9 +196,9 @@ void BspUart::IfSendQueuedData(void)
  * @param[in] callback Name of the callback to attach
  * @retval None
  **********************************************************/
-void BspUart::AttachRxDataHandler(void (*callback)(uint8_t *, uint8_t))
+void BspUart_AttachRxDataHandler(void (*callback)(uint8_t *, uint8_t))
 {
-	BspUart::BspUartDataType *pUart = &gBspUartData;
+	BspUartDataType *pUart = &gBspUartData;
 	pUart->uartRxDataCallback = (void (*)(uint8_t *, uint8_t))callback;
 }
 /******************************************************//**
@@ -208,7 +207,7 @@ void BspUart::AttachRxDataHandler(void (*callback)(uint8_t *, uint8_t))
  * @param[in] callback Name of the callback to attach
  * @retval None
  **********************************************************/
-void BspUart::AttachTxDoneCallback(void (*callback)(void))
+void BspUart_AttachTxDoneCallback(void (*callback)(void))
 {
 	BspUartDataType *pUart = &gBspUartData;
 	pUart->uartTxDoneCallback = (void (*)(void))callback;
@@ -221,7 +220,7 @@ void BspUart::AttachTxDoneCallback(void (*callback)(void))
  * @param[in]  Optional arguments to fit with formatting
  * @retval Lengthj of the string to print (uint32_t)
  **********************************************************/
-uint32_t BspUart::Printf(const char* format,...)
+uint32_t BspUart_Printf(const char* format,...)
 {
 	BspUartDataType *pUart = &gBspUartData;
 	va_list args;
@@ -261,7 +260,7 @@ uint32_t BspUart::Printf(const char* format,...)
 		pUart->pTxWriteBuffer  = pUart->pTxBuffer;
 	}
 
-	BspUart::IfSendQueuedData();
+	BspUart_IfSendQueuedData();
 	}
 	return(retSize);
 }
@@ -271,7 +270,7 @@ uint32_t BspUart::Printf(const char* format,...)
  * @param[in] fnone
   * @retval nxRxBytes nb received bytes
  **********************************************************/
-uint32_t BspUart::GetNbRxAvalaibleBytes(void)
+uint32_t BspUart_GetNbRxAvalaibleBytes(void)
 {
 	BspUartDataType *pUart = &gBspUartData;
 	uint8_t *writePtr = (uint8_t *)(pUart->pRxWriteBuffer - 1);
@@ -293,7 +292,7 @@ uint32_t BspUart::GetNbRxAvalaibleBytes(void)
 #if !defined(MARLIN)
 	if (nxRxBytes != 0)
 	{
-		uint8_t result = BspUart::ParseRxAvalaibleBytes((char const*)pUart->pRxReadBuffer, nxRxBytes);
+		uint8_t result = BspUart_ParseRxAvalaibleBytes((char const*)pUart->pRxReadBuffer, nxRxBytes);
 		if (result < BSP_WIFI_THRES_TO_GCODE_PARSER)
 		{
 			//The available bytes will not to go into the Gcode parser
@@ -314,9 +313,9 @@ uint32_t BspUart::GetNbRxAvalaibleBytes(void)
  * @param[in] fnone
   * @retval nxRxBytes nb received bytes
  **********************************************************/
-uint8_t BspUart::ParseRxAvalaibleBytes(const char* pBuffer, uint8_t nbRxBytes)
+uint8_t BspUart_ParseRxAvalaibleBytes(const char* pBuffer, uint8_t nbRxBytes)
 {
-	return (BSP_WIFI.ParseTxBytes(pBuffer, nbRxBytes, BSP_WIFI_SOURCE_IS_DEBUG_UART));
+	return (BspWifi_ParseTxBytes(pBuffer, nbRxBytes, BSP_WIFI_SOURCE_IS_DEBUG_UART));
 }
 
 /******************************************************//**
@@ -324,7 +323,7 @@ uint8_t BspUart::ParseRxAvalaibleBytes(const char* pBuffer, uint8_t nbRxBytes)
  * @param[in] none
  * @retval byteValue (0-0X7F)  or -1 if no byte is available
  **********************************************************/
-int8_t BspUart::GetNextRxBytes(void)
+int8_t BspUart_GetNextRxBytes(void)
 {
 	BspUartDataType *pUart = &gBspUartData;
 	int8_t byteValue;
@@ -359,7 +358,7 @@ int8_t BspUart::GetNextRxBytes(void)
  * @param[in] none
  * @retval 0 if no pending TX request in the UART
  **********************************************************/
-uint8_t BspUart::IsTxOnGoing(void)
+uint8_t BspUart_IsTxOnGoing(void)
 {
 	BspUartDataType *pUart = &gBspUartData;
 	return (pUart->newTxRequestInThePipe||pUart->txBusy);
@@ -372,7 +371,7 @@ uint8_t BspUart::IsTxOnGoing(void)
  * @param[in] pBuf pointer to the buffer holding the command
  * @retval number of bytes destinated to the gcode parser
  **********************************************************/
-uint32_t BspUart::CommandsFilter(char *pBufCmd, uint8_t nxRxBytes)
+uint32_t BspUart_CommandsFilter(char *pBufCmd, uint8_t nxRxBytes)
 {
 	if (BSP_UartParseRxAvalaibleBytes((char const*)pBufCmd, nxRxBytes)\
 		< BSP_WIFI_THRES_TO_GCODE_PARSER)
@@ -392,14 +391,14 @@ uint32_t BspUart::CommandsFilter(char *pBufCmd, uint8_t nxRxBytes)
  * @retval None
  **********************************************************/
 
-void BspUart::LockingTx(uint8_t *pBuf, uint8_t nbData)
+void BspUart_LockingTx(uint8_t *pBuf, uint8_t nbData)
 {
 //   BspUartDataType *pUart = &gBspUartData;
    Transmit_IT(pBuf, nbData);
 }
 
 
-ErrorStatus BspUart::Transmit_IT(uint8_t *pData, uint16_t Size)
+ErrorStatus BspUart_Transmit_IT(uint8_t *pData, uint16_t Size)
 {
     uint16_t i;
     for(i = 0; i < Size; i++)
@@ -410,7 +409,7 @@ ErrorStatus BspUart::Transmit_IT(uint8_t *pData, uint16_t Size)
     return SUCCESS;
 }
 
-ErrorStatus BspUart::Receive_IT(uint8_t *pData, uint16_t Size)
+ErrorStatus BspUart_Receive_IT(uint8_t *pData, uint16_t Size)
 {
 	uint16_t i;
 
