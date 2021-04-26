@@ -11,8 +11,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-//#include "stm32f10x.h"
-#include "stm32f1xx.h"
+#include "stm32f1xx_hal.h"
 #include "TIMEOUT/TIMEOUT.h"
 
 /* Private defines -----------------------------------------------------------*/
@@ -66,9 +65,10 @@ BspWifiDataType gBspWifiData;
 char previousString[256];
 
 /* Private function -----------------------------------------------------------*/
-
-uint8_t BSP_WifiParseRxBytes(uint8_t offset, uint8_t nbBytes);
-void BSP_WifiRestart(void);
+void BspWifi_GpioInit(void);
+void BspWifi_UartInit(uint32_t baudRate);
+uint8_t BSPWifi_ParseRxBytes(uint8_t offset, uint8_t nbBytes);
+void BspWifi_Restart(void);
 
 #if defined(PROD_TEST)
 /******************************************************//**
@@ -120,28 +120,28 @@ void BspWifi_HwInit(uint32_t baudRate, char* ssid, char* wepKey)
  **********************************************************/
 void BspWifi_GpioInit(void)
 {
-//  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitTypeDef GPIO_InitStruct;
 
-//  GPIO_InitStruct.Pin = BSP_WIFI_BOOT_PIN;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
-//  HAL_GPIO_Init(BSP_WIFI_BOOT_PORT, &GPIO_InitStruct);
-//
-//  GPIO_InitStruct.Pin = BSP_WIFI_RESET_PIN;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
-//  HAL_GPIO_Init(BSP_WIFI_RESET_PORT, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = BSP_WIFI_BOOT_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+  HAL_GPIO_Init(BSP_WIFI_BOOT_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = BSP_WIFI_RESET_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+  HAL_GPIO_Init(BSP_WIFI_RESET_PORT, &GPIO_InitStruct);
   /* Releasing the reset starts the wifi module and so, the communication on  */
   /* the wifi uart starts                                                     */
-//  HAL_GPIO_WritePin(BSP_WIFI_RESET_PORT, BSP_WIFI_RESET_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BSP_WIFI_RESET_PORT, BSP_WIFI_RESET_PIN, GPIO_PIN_SET);
 
-//  GPIO_InitStruct.Pin = BSP_WIFI_WAKEUP_PIN;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
-//  HAL_GPIO_Init(BSP_WIFI_WAKEUP_PORT, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = BSP_WIFI_WAKEUP_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+  HAL_GPIO_Init(BSP_WIFI_WAKEUP_PORT, &GPIO_InitStruct);
 }
 
 /******************************************************//**
@@ -153,24 +153,24 @@ void BspWifi_UartInit(uint32_t baudRate)
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
 
-//	pWifi->uartHandle.Instance = BSP_WIFI_UART;
-//	pWifi->uartHandle.Init.BaudRate = baudRate;
-//	pWifi->uartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-//	pWifi->uartHandle.Init.StopBits = UART_STOPBITS_1;
-//	pWifi->uartHandle.Init.Parity = UART_PARITY_NONE;
-//	pWifi->uartHandle.Init.Mode = UART_MODE_TX_RX;
-//	pWifi->uartHandle.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
-//	pWifi->uartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+	pWifi->uartHandle.Instance = BSP_WIFI_UART;
+	pWifi->uartHandle.Init.BaudRate = baudRate;
+	pWifi->uartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+	pWifi->uartHandle.Init.StopBits = UART_STOPBITS_1;
+	pWifi->uartHandle.Init.Parity = UART_PARITY_NONE;
+	pWifi->uartHandle.Init.Mode = UART_MODE_TX_RX;
+	pWifi->uartHandle.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+	pWifi->uartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
 
-//	if(HAL_UART_DeInit(&pWifi->uartHandle) != HAL_OK)
-//	{
-//		WIFI_ERROR(1);
-//	}
-//
-//	if( HAL_UART_Init(&pWifi->uartHandle) != HAL_OK)
-//	{
-//		WIFI_ERROR(2);
-//	}
+	if(HAL_UART_DeInit(&pWifi->uartHandle) != HAL_OK)
+	{
+		WIFI_ERROR(1);
+	}
+
+	if( HAL_UART_Init(&pWifi->uartHandle) != HAL_OK)
+	{
+		WIFI_ERROR(2);
+	}
 
 	pWifi->state = BSP_WIFI_UART_BYTES_NONE;
 	pWifi->txFlag = RESET;
@@ -190,10 +190,10 @@ void BspWifi_UartInit(uint32_t baudRate)
 	#endif //#if defined(PROD_TEST)
 //TODO: issue_1
 	/* wait for 1 bytes on the RX uart */
-//	if (HAL_UART_Receive_DMA(&pWifi->uartHandle, (uint8_t *)(pWifi->pRxWriteBuffer), 1) != HAL_OK)
-//	{
-//		WIFI_ERROR(3);
-//	}
+	if (HAL_UART_Receive_DMA(&pWifi->uartHandle, (uint8_t *)(pWifi->pRxWriteBuffer), 1) != HAL_OK)
+	{
+		WIFI_ERROR(3);
+	}
 	pWifi->pRxWriteBuffer++;
 }
 
@@ -230,10 +230,10 @@ uint8_t BspWifi_UartRxCpltCallback(void *UartHandle,\
 	{
 		pWifi->pRxWriteBuffer = pWifi->pRxBuffer;
 	}
-//	if (HAL_UART_Receive_DMA(&pWifi->uartHandle,(uint8_t *)(pWifi->pRxWriteBuffer), 1) != HAL_OK)
-//	{
-//		WIFI_ERROR(4);
-//	}
+	if (HAL_UART_Receive_DMA(&pWifi->uartHandle,(uint8_t *)(pWifi->pRxWriteBuffer), 1) != HAL_OK)
+	{
+		WIFI_ERROR(4);
+	}
 	pWifi->pRxWriteBuffer++;
 	if (pWifi->pRxWriteBuffer == pWifi->pRxReadBuffer)
 	{
@@ -254,7 +254,7 @@ uint8_t BspWifi_UartRxCpltCallback(void *UartHandle,\
 #ifdef WIFI_DEBUG
 			BSP_UartIfQueueTxData(pWifi->pRxReadBuffer, nbRxBytes);
 #endif /* WIFI_DEBUG */
-			result = BSP_WifiParseRxBytes(parseOffset, nbRxBytes);
+			result = BSPWifi_ParseRxBytes(parseOffset, nbRxBytes);
 			*c = pWifi->pRxReadBuffer;
 			pWifi->pRxReadBuffer += nbRxBytes;
 			if (pWifi->pRxReadBuffer >= (pWifi->pRxBuffer + WIFI_UART_RX_BUFFER_SIZE))
@@ -302,7 +302,7 @@ uint8_t BspWifi_ParseRxBytes(uint8_t offset, uint8_t nbBytes)
 			strlen(WIFI_UART_FILE_WRITE_START_STRING))==0)
 			{
 				pWifi->mode = WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER;
-//				pWifi->lastTime = HAL_GetTick();
+				pWifi->lastTime = HAL_GetTick();
 				pWifi->lastTime = TIMEOUT_gettick_ms();
 				result = nbBytes;
 			}
@@ -546,173 +546,139 @@ uint8_t BspWifi_ParseRxBytes(uint8_t offset, uint8_t nbBytes)
 uint8_t BspWifi_ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,\
   uint8_t source)
 {
-  BspWifiDataType *pWifi = &gBspWifiData;
-  uint8_t result = 0;
+	BspWifiDataType *pWifi = &gBspWifiData;
+	uint8_t result = 0;
 
-  if (nbTxBytes == 0) return BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
-  pWifi->state = BSP_WIFI_UART_BYTES_NONE;
-  switch (pWifi->mode)
-  {
-    case WIFI_COMMAND_MODE_AND_GCODE_PARSER:
-    {
-        if (source == BSP_WIFI_SOURCE_IS_PLATFORM)
-  {
-          if (pWifi->fileCreationPending==0)
-  {
-            /* This code handles the read of the platform reply by the WIFI   */
-            /* module input.cgi script                                        */
-            /* The reply is stored in an intermediate buffer until the        */
-            /* running of the input.cgi script has been detected              */
-            strncpy(previousString, pBuffer, nbTxBytes);
-            /* As stated in SPWF01Sx � Dynamic Web Pages application note,    */
-            /* the message terminator must be <CR>.                           */
-            previousString[nbTxBytes]='\r';
-            previousString[nbTxBytes+1]='\0';
-          }
-          else if (\
-        		  BspWifi_CreateFileInWifiModuleRam("gcf_list.html",nbTxBytes)==\
-            BSP_WIFI_FILE_CREATION_OK)
-    {
-            pWifi->fileCreationPending = 0;
-            strncpy((char*)pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
-            pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
-            pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-    }
-    else
-    {
-            WIFI_ERROR(11);
-    }
-          break;
-  }
-        else if (strncmp((const char *)pBuffer, "\r\n\r\n",4)==0)
-        /* This is what can be seen on WIFI uart when a message is awaited by */
-        /* the input.cgi script                                               */
-  {
-          if (previousString[0]!='\0')
-          {
-            pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-            strcpy((char*)pWifi->pTxWriteBuffer, previousString);
-            previousString[0]='\0';
-            break;
-          }
-        }
-        else if (strncasecmp(pBuffer,"at",2) != 0)
-        {
-          pWifi->state = BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
-          break;
-        }
-  }
-    case WIFI_COMMAND_MODE:
-      {
-        if (strncasecmp(pBuffer,"at",2) == 0)
-  {
-          strncpy((char*)pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
-          pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
-    if (pWifi->commandPending == 0)
-    {
-      pWifi->commandPending = 1;
-    }
-          else
-    {
-            /* AT command has not been acknowledged by the WIFI module either */
-            /* with an OK, an ERROR, or a +WIND:2: response */
-      WIFI_ERROR(7);
-    }
-          pBuffer += 2;
-          if (strncasecmp(pBuffer,"+CFUN=",6)==0)
-    {
-      pWifi->restartPending = 1;
-    }
-          else if (strncasecmp(pBuffer,"+S.FSA=/",8)==0)
-    {
-      pWifi->mode = WIFI_FILE_APPEND;
-    }
-          pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        }
-        else
-        {
-          pWifi->state = BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
-        }
-      }
-      break;
-    case WIFI_DATA_MODE_AND_GCODE_PARSER:
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI_AND_GCODE_PARSER;
-      }
-    case WIFI_DATA_MODE:
-      {
-        if (strncasecmp(pBuffer,"AT+S.\r",6) == 0)
-        {
-          strcpy((char*)pWifi->pTxWriteBuffer, "at+s.\0");
-        }
-        else
-        {
-          strncpy((char*)pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
-          pWifi->pTxWriteBuffer[nbTxBytes++] = '\n';
-          pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
-        }
-        pWifi->state |= BSP_WIFI_UART_BYTES_TO_WIFI;
-      }
-      break;
-    case WIFI_FILE_APPEND:
-      {
-        strncpy((char*)pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
-        pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-      }
-      break;
-    case WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER:
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
-        if (source != BSP_WIFI_SOURCE_IS_PLATFORM)
-        {
-          if (strncmp((const char *)pBuffer, "\r\n\r\n",4)==0)
-          /* this is what can be seen on WIFI uart when a message is awaited */
-          {
-            if (previousString[0]!='\0')
-            {
-              pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-              strcpy((char*)pWifi->pTxWriteBuffer, previousString);
-              previousString[0]='\0';
-            }
-          }
-          else if (previousString[0]=='\0')
-          {
-            if (strncmp((const char *)pBuffer, "\r\n",2)==0)
-            /* this is what has been received from the WIFI uart */
-            {
-              strncpy(previousString, pBuffer+2, nbTxBytes-2);
-              previousString[nbTxBytes-2] = '\0';
-            }
-            else
-            {
-              strncpy((char*)previousString, pBuffer, nbTxBytes);
-              previousString[nbTxBytes] = '\0';
-            }
-//            pWifi->replyCounter = HAL_GetTick();
-            pWifi->replyCounter = TIMEOUT_gettick_ms();
-            if (pWifi->replyCounter > (0xFFFFFFFF - WIFI_INPUT_CGI_DELAY))
-            {
-              pWifi->replyCounter = WIFI_INPUT_CGI_DELAY -\
-               (0xFFFFFFFF - pWifi->replyCounter);
-  }
-  else
-  {
-              pWifi->replyCounter += WIFI_INPUT_CGI_DELAY;
-            }
-          }
-        }
-      }
-      break;
-    default:
-      WIFI_ERROR(9);
-  }
+	if (nbTxBytes == 0)
+		return BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
+	pWifi->state = BSP_WIFI_UART_BYTES_NONE;
 
-  result =  pWifi->state;
+	switch (pWifi->mode) {
+	case WIFI_COMMAND_MODE_AND_GCODE_PARSER: {
+		if (source == BSP_WIFI_SOURCE_IS_PLATFORM)
+		{
+			if (pWifi->fileCreationPending == 0)
+			{
+				/* This code handles the read of the platform reply by the WIFI   */
+				/* module input.cgi script                                        */
+				/* The reply is stored in an intermediate buffer until the        */
+				/* running of the input.cgi script has been detected              */
+				strncpy(previousString, pBuffer, nbTxBytes);
+				/* As stated in SPWF01Sx � Dynamic Web Pages application note,    */
+				/* the message terminator must be <CR>.                           */
+				previousString[nbTxBytes] = '\r';
+				previousString[nbTxBytes + 1] = '\0';
+			}
+			else if (BspWifi_CreateFileInWifiModuleRam("gcf_list.html", nbTxBytes) == BSP_WIFI_FILE_CREATION_OK) {
+				pWifi->fileCreationPending = 0;
+				strncpy((char*) pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
+				pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
+				pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			} else {
+				WIFI_ERROR(11);
+			}
+			break;
+		} else if (strncmp((const char*) pBuffer, "\r\n\r\n", 4) == 0)
+		/* This is what can be seen on WIFI uart when a message is awaited by */
+		/* the input.cgi script                                               */
+		{
+			if (previousString[0] != '\0') {
+				pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+				strcpy((char*) pWifi->pTxWriteBuffer, previousString);
+				previousString[0] = '\0';
+				break;
+			}
+		} else if (strncasecmp(pBuffer, "at", 2) != 0) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
+			break;
+		}
+	}
+	case WIFI_COMMAND_MODE: {
+		if (strncasecmp(pBuffer, "at", 2) == 0) {
+			strncpy((char*) pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
+			pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
+			if (pWifi->commandPending == 0) {
+				pWifi->commandPending = 1;
+			} else {
+				/* AT command has not been acknowledged by the WIFI module either */
+				/* with an OK, an ERROR, or a +WIND:2: response */
+				WIFI_ERROR(7);
+			}
+			pBuffer += 2;
+			if (strncasecmp(pBuffer, "+CFUN=", 6) == 0) {
+				pWifi->restartPending = 1;
+			} else if (strncasecmp(pBuffer, "+S.FSA=/", 8) == 0) {
+				pWifi->mode = WIFI_FILE_APPEND;
+			}
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+		} else {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
+		}
+	}
+		break;
+	case WIFI_DATA_MODE_AND_GCODE_PARSER: {
+		pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI_AND_GCODE_PARSER;
+	}
+	case WIFI_DATA_MODE: {
+		if (strncasecmp(pBuffer, "AT+S.\r", 6) == 0) {
+			strcpy((char*) pWifi->pTxWriteBuffer, "at+s.\0");
+		} else {
+			strncpy((char*) pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
+			pWifi->pTxWriteBuffer[nbTxBytes++] = '\n';
+			pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
+		}
+		pWifi->state |= BSP_WIFI_UART_BYTES_TO_WIFI;
+	}
+		break;
+	case WIFI_FILE_APPEND: {
+		strncpy((char*) pWifi->pTxWriteBuffer, pBuffer, nbTxBytes);
+		pWifi->pTxWriteBuffer[nbTxBytes] = '\0';
+		pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+	}
+		break;
+	case WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER: {
+		pWifi->state = BSP_WIFI_UART_BYTES_TO_GCODE_PARSER;
+		if (source != BSP_WIFI_SOURCE_IS_PLATFORM) {
+			if (strncmp((const char*) pBuffer, "\r\n\r\n", 4) == 0)
+			/* this is what can be seen on WIFI uart when a message is awaited */
+			{
+				if (previousString[0] != '\0') {
+					pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+					strcpy((char*) pWifi->pTxWriteBuffer, previousString);
+					previousString[0] = '\0';
+				}
+			} else if (previousString[0] == '\0') {
+				if (strncmp((const char*) pBuffer, "\r\n", 2) == 0)
+				/* this is what has been received from the WIFI uart */
+				{
+					strncpy(previousString, pBuffer + 2, nbTxBytes - 2);
+					previousString[nbTxBytes - 2] = '\0';
+				} else {
+					strncpy((char*) previousString, pBuffer, nbTxBytes);
+					previousString[nbTxBytes] = '\0';
+				}
+				pWifi->replyCounter = HAL_GetTick();
+				pWifi->replyCounter = TIMEOUT_gettick_ms();
+				if (pWifi->replyCounter > (0xFFFFFFFF - WIFI_INPUT_CGI_DELAY)) {
+					pWifi->replyCounter = WIFI_INPUT_CGI_DELAY
+							-\
+ (0xFFFFFFFF - pWifi->replyCounter);
+				} else {
+					pWifi->replyCounter += WIFI_INPUT_CGI_DELAY;
+				}
+			}
+		}
+	}
+		break;
+	default:
+		WIFI_ERROR(9);
+	}
 
-  ProcessUartBytes();
+	result = pWifi->state;
 
-  return result;
+	BspWifi_ProcessUartBytes();
+
+	return result;
 }
 
 /******************************************************//**
@@ -726,85 +692,73 @@ uint8_t BspWifi_ParseTxBytes(const char* pBuffer, uint16_t nbTxBytes,\
 **********************************************************/
 void BspWifi_ProcessUartBytes(void)
 {
-  BspWifiDataType *pWifi = &gBspWifiData;
-  uint16_t nbBytes;
+	BspWifiDataType *pWifi = &gBspWifiData;
+	uint16_t nbBytes;
 
-  if (pWifi->mode == WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER)
-  {
-//    uint32_t tmp = HAL_GetTick();
-	  uint32_t tmp = TIMEOUT_gettick_ms();
-    /* Sometimes the WIFI module omits to send a line feed before waiting an  */
-    /* input string as part of the input.cgi script execution.                */
-    /* To circumvent this issue, the 3D printer sends the previously received */
-    /* string after WIFI_INPUT_CGI_DELAY in ms                                */
-    if (tmp > pWifi->replyCounter)
-    {
-      if (pWifi->txFlag == RESET)
-      {
-        if (previousString[0]!='\0')
-        {
-          pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-          strcpy((char*)pWifi->pTxWriteBuffer, previousString);
-          previousString[0]='\0';
-        }
-      }
-    }
-    /* In case the WIFI_UART_FILE_WRITE_STOP_STRING has not been received for */
-    /* a too long time since the last received string from the WIFI module    */
-    /* the WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER is automatically       */
-    /* exited                                                                 */
-    {
-      if (tmp < pWifi->lastTime)
-      {
-        tmp = tmp + (0xFFFFFFFF - pWifi->lastTime);
-      }
-      else
-      {
-        tmp = tmp - pWifi->lastTime;
-      }
-      if (tmp > WIFI_COMMAND_MODE_WEB_WRITE_TIMEOUT)
-      {
-        strcpy((char *)pWifi->pRxReadBuffer,\
-          "\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n");
-        BspUart_IfQueueTxData(pWifi->pRxReadBuffer,\
-          strlen("\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n"));
-        pWifi->pRxReadBuffer += (strlen(\
-          "\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n") - 2);
-        if (pWifi->pRxReadBuffer >=\
-          (pWifi->pRxBuffer + WIFI_UART_RX_BUFFER_SIZE))
-        {
-          pWifi->pRxReadBuffer = pWifi->pRxBuffer;
-        }
-        pWifi->mode = WIFI_COMMAND_MODE;
-      }
-    }
-  }
+	if (pWifi->mode == WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER) {
+		uint32_t tmp = HAL_GetTick();
+		/* Sometimes the WIFI module omits to send a line feed before waiting an  */
+		/* input string as part of the input.cgi script execution.                */
+		/* To circumvent this issue, the 3D printer sends the previously received */
+		/* string after WIFI_INPUT_CGI_DELAY in ms                                */
+		if (tmp > pWifi->replyCounter) {
+			if (pWifi->txFlag == RESET) {
+				if (previousString[0] != '\0') {
+					pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+					strcpy((char*) pWifi->pTxWriteBuffer, previousString);
+					previousString[0] = '\0';
+				}
+			}
+		}
+		/* In case the WIFI_UART_FILE_WRITE_STOP_STRING has not been received for */
+		/* a too long time since the last received string from the WIFI module    */
+		/* the WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER is automatically       */
+		/* exited                                                                 */
+		{
+			if (tmp < pWifi->lastTime) {
+				tmp = tmp + (0xFFFFFFFF - pWifi->lastTime);
+			} else {
+				tmp = tmp - pWifi->lastTime;
+			}
+			if (tmp > WIFI_COMMAND_MODE_WEB_WRITE_TIMEOUT) {
+				strcpy((char*) pWifi->pRxReadBuffer,
+						"\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n");
+				BspUart_IfQueueTxData(pWifi->pRxReadBuffer,
+						strlen(
+								"\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n"));
+				pWifi->pRxReadBuffer +=
+						(strlen(
+								"\r\nExiting WIFI_COMMAND_MODE_WEB_FILE_AND_GCODE_PARSER\r\n")
+								- 2);
+				if (pWifi->pRxReadBuffer
+						>= (pWifi->pRxBuffer + WIFI_UART_RX_BUFFER_SIZE)) {
+					pWifi->pRxReadBuffer = pWifi->pRxBuffer;
+				}
+				pWifi->mode = WIFI_COMMAND_MODE;
+			}
+		}
+	}
 
-  /* Restart the WIFI module as a response to AT+CFUN command */
-  if (pWifi->restartPending >= 2)
-  {
-    if (pWifi->restartPending == 3)
-    {
-//      HAL_Delay(20000);
-      TIMEOUT_delay_ms(20000);
-    }
-    pWifi->restartPending = 0;
-    BSP_WifiRestart();
-  }
+	/* Restart the WIFI module as a response to AT+CFUN command */
+	if (pWifi->restartPending >= 2) {
+		if (pWifi->restartPending == 3) {
+			HAL_Delay(20000);
+		}
+		pWifi->restartPending = 0;
+		BspWifi_Restart();
+	}
 
-  /* WIFI module configuration using AT commands */
-  switch (pWifi->configPending)
-  {
-    case -1:
-    case 0:
-      break;
-    case WIFI_FILE_CREATION_PENDING: /* switch to command mode pending */
-      if (pWifi->fileCreationPending==0)
-      {
-        pWifi->mode = WIFI_COMMAND_MODE;
-        pWifi->configPending=0;
-      }
-      break;
+	/* WIFI module configuration using AT commands */
+	switch (pWifi->configPending) {
+	case -1:
+	case 0:
+		break;
+	case WIFI_FILE_CREATION_PENDING: /* switch to command mode pending */
+		if (pWifi->fileCreationPending == 0) {
+			pWifi->mode = WIFI_COMMAND_MODE;
+			pWifi->configPending = 0;
+		}
+		break;
 #if defined(PROD_TEST)
     case WIFI_CONFIG_FS_UPDATE_PENDING: /* file system update on-going */
       if ((pWifi->txFlag == RESET) && (pWifi->fsUpdatePending == 0))
@@ -868,8 +822,7 @@ void BspWifi_ProcessUartBytes(void)
     case WIFI_CONFIG_SAVE_CASE-1: /* reset the module */
       if (pWifi->txFlag == RESET)
       {
-//        HAL_Delay(100); /* Give the wifi module time to save the settings */
-    	  TIMEOUT_delay_ms(100);
+        HAL_Delay(100); /* Give the wifi module time to save the settings */
         pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
         pWifi->restartPending = 2;
         pWifi->configPending=WIFI_CONFIG_FS_UPDATE;
@@ -877,157 +830,144 @@ void BspWifi_ProcessUartBytes(void)
       }
       break;
 #else //#if defined(PROD_TEST)
-    case WIFI_CONFIG_SAVE_CASE-1: /* reset the module */
-      if (pWifi->txFlag == RESET)
-      {
-//        HAL_Delay(100); /* Give the wifi module time to save the settings */
-        TIMEOUT_delay_ms(100);
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->restartPending = 2;
-        pWifi->configPending = 0;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+CFUN=1\r\n");
-      }
-      break;
+	case WIFI_CONFIG_SAVE_CASE - 1: /* reset the module */
+		if (pWifi->txFlag == RESET) {
+			HAL_Delay(100); /* Give the wifi module time to save the settings */
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->restartPending = 2;
+			pWifi->configPending = 0;
+			strcpy((char*) (pWifi->pTxWriteBuffer), "AT+CFUN=1\r\n");
+		}
+		break;
 #endif //#else //#if defined(PROD_TEST)
-    case WIFI_CONFIG_SAVE_CASE: /* Save the settings on the flash memory */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT&W\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-13: /* Enable socket server, default is TCP */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SOCKD=32000\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-12: /* Change the Mini AP default homepage */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--; /* After last item to configure, next is saving */
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=ip_apredirect,axisctrl.shtml\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-11: /* Set the MiniAP address */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=ip_ipaddr,192.168.0.1\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-10: /* Set the use_dhcpmode (0 = DHCP server off, 1 = DHCP server on, 2 = DHCP server on and customizable) */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=ip_use_dhcp,2\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-9: /* Set the network mode (1 = STA, 2 = IBSS, 3 = MiniAP) */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=wifi_mode,3\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-8: /* Set the network privacy mode (0=OPEN or 1=WEP are supported) */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=wifi_priv_mode,1\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-7: /* Set authentication type */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=wifi_auth_type,0\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-6: /* Set the wep key length, 05 or 0D bytes */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        if (strlen(pWifi->wepKey)==10)
-        {
-          strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=wifi_wep_key_lens,05\r\n");
-        }
-        else if (strlen(pWifi->wepKey)==26)
-        {
-          strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=wifi_wep_key_lens,0D\r\n");
-        }
-        else
-        {
-          WIFI_ERROR(12);
-        }
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-5: /* Set the wep key */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SCFG=wifi_wep_keys[0],");
-        strcat((char *)(pWifi->pTxWriteBuffer),pWifi->wepKey);
-        strcat((char *)(pWifi->pTxWriteBuffer),"\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-4: /* Set the SSID */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),"AT+S.SSIDTXT=");
-        strcat((char *)(pWifi->pTxWriteBuffer),pWifi->ssid);
-        strcat((char *)(pWifi->pTxWriteBuffer),"\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-3: /* Wind 0:31 mask */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),\
-          "AT+S.SCFG=wind_off_low,0xC8FDFFF9\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-2: /* Wind 32:63 mask */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),\
-          "AT+S.SCFG=wind_off_medium,0xA6FFFFFE\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS-1: /* Wind 64:95 mask */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),\
-          "AT+S.SCFG=wind_off_high,0xFFFFFFFF\r\n");
-      }
-      break;
-    case WIFI_CONFIG_SAVE_CASE+WIFI_CONFIG_ITEMS: /* Hardware flow control on */
-      if (pWifi->txFlag == RESET)
-      {
-        pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
-        pWifi->configPending--;
-        strcpy((char *)(pWifi->pTxWriteBuffer),\
-          "AT+S.SCFG=console1_hwfc,1\r\n");
-      }
-      break;
+	case WIFI_CONFIG_SAVE_CASE: /* Save the settings on the flash memory */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer), "AT&W\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 13: /* Enable socket server, default is TCP */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer), "AT+S.SOCKD=32000\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 12: /* Change the Mini AP default homepage */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--; /* After last item to configure, next is saving */
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=ip_apredirect,axisctrl.shtml\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 11: /* Set the MiniAP address */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=ip_ipaddr,192.168.0.1\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 10: /* Set the use_dhcpmode (0 = DHCP server off, 1 = DHCP server on, 2 = DHCP server on and customizable) */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=ip_use_dhcp,2\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 9: /* Set the network mode (1 = STA, 2 = IBSS, 3 = MiniAP) */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wifi_mode,3\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 8: /* Set the network privacy mode (0=OPEN or 1=WEP are supported) */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wifi_priv_mode,1\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 7: /* Set authentication type */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wifi_auth_type,0\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 6: /* Set the wep key length, 05 or 0D bytes */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			if (strlen(pWifi->wepKey) == 10) {
+				strcpy((char*) (pWifi->pTxWriteBuffer),
+						"AT+S.SCFG=wifi_wep_key_lens,05\r\n");
+			} else if (strlen(pWifi->wepKey) == 26) {
+				strcpy((char*) (pWifi->pTxWriteBuffer),
+						"AT+S.SCFG=wifi_wep_key_lens,0D\r\n");
+			} else {
+				WIFI_ERROR(12);
+			}
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 5: /* Set the wep key */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wifi_wep_keys[0],");
+			strcat((char*) (pWifi->pTxWriteBuffer), pWifi->wepKey);
+			strcat((char*) (pWifi->pTxWriteBuffer), "\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 4: /* Set the SSID */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer), "AT+S.SSIDTXT=");
+			strcat((char*) (pWifi->pTxWriteBuffer), pWifi->ssid);
+			strcat((char*) (pWifi->pTxWriteBuffer), "\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 3: /* Wind 0:31 mask */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wind_off_low,0xC8FDFFF9\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 2: /* Wind 32:63 mask */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wind_off_medium,0xA6FFFFFE\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS - 1: /* Wind 64:95 mask */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=wind_off_high,0xFFFFFFFF\r\n");
+		}
+		break;
+	case WIFI_CONFIG_SAVE_CASE + WIFI_CONFIG_ITEMS: /* Hardware flow control on */
+		if (pWifi->txFlag == RESET) {
+			pWifi->state = BSP_WIFI_UART_BYTES_TO_WIFI;
+			pWifi->configPending--;
+			strcpy((char*) (pWifi->pTxWriteBuffer),
+					"AT+S.SCFG=console1_hwfc,1\r\n");
+		}
+		break;
 #if defined(PROD_TEST)
     case WIFI_CONFIG_FW_UPDATE: /* Firmware update */
       if (pWifi->txFlag == RESET)
@@ -1051,36 +991,34 @@ void BspWifi_ProcessUartBytes(void)
       }
       break;
 #endif //#if defined(PROD_TEST)
-    default:
-      WIFI_ERROR(8);
-  }
+	default:
+		WIFI_ERROR(8);
+	}
 
-  if (((pWifi->state & BSP_WIFI_UART_BYTES_TO_WIFI)\
-    == BSP_WIFI_UART_BYTES_TO_WIFI)&&(pWifi->txFlag == RESET))
-  {
-    nbBytes = strlen((const char*)pWifi->pTxWriteBuffer);
-    if (nbBytes != 0)
-  {
-    pWifi->txFlag = SET;
-      /* State is change here to prevent the triggering of a transmit in case   */
-      /* no new one has been ordered at the time the tx flag is reset           */
-      pWifi->state = BSP_WIFI_UART_BYTES_NONE;
-//      if(HAL_UART_Transmit_DMA(&(pWifi->uartHandle),
-//        (uint8_t *)(pWifi->pTxWriteBuffer), nbBytes)!= HAL_OK)
-//    {
-//      WIFI_ERROR(6);
-//    }
-      pWifi->pTxWriteBuffer += nbBytes;
-      if (pWifi->pTxWriteBuffer >= pWifi->pTxBuffer + WIFI_UART_TX_BUFFER_SIZE)
-      {
-        pWifi->pTxWriteBuffer = pWifi->pTxBuffer;
-      }
-    if (pWifi->mode == WIFI_FILE_APPEND)
-    {
-      while (pWifi->txFlag != RESET);
-    }
-  }
-  }
+	if (((pWifi->state & BSP_WIFI_UART_BYTES_TO_WIFI)\
+
+			== BSP_WIFI_UART_BYTES_TO_WIFI) && (pWifi->txFlag == RESET)) {
+		nbBytes = strlen((const char*) pWifi->pTxWriteBuffer);
+		if (nbBytes != 0) {
+			pWifi->txFlag = SET;
+			/* State is change here to prevent the triggering of a transmit in case   */
+			/* no new one has been ordered at the time the tx flag is reset           */
+			pWifi->state = BSP_WIFI_UART_BYTES_NONE;
+			if (HAL_UART_Transmit_DMA(&(pWifi->uartHandle),
+					(uint8_t*) (pWifi->pTxWriteBuffer), nbBytes) != HAL_OK) {
+				WIFI_ERROR(6);
+			}
+			pWifi->pTxWriteBuffer += nbBytes;
+			if (pWifi->pTxWriteBuffer
+					>= pWifi->pTxBuffer + WIFI_UART_TX_BUFFER_SIZE) {
+				pWifi->pTxWriteBuffer = pWifi->pTxBuffer;
+			}
+			if (pWifi->mode == WIFI_FILE_APPEND) {
+				while (pWifi->txFlag != RESET)
+					;
+			}
+		}
+	}
  }
 
 /******************************************************//**
@@ -1090,16 +1028,12 @@ void BspWifi_ProcessUartBytes(void)
  **********************************************************/
 void BspWifi_Restart(void)
 {
-//  HAL_Delay(100);
-  TIMEOUT_delay_ms(100);
-//  GPIO_WriteBit(BSP_WIFI_RESET_PORT, BSP_WIFI_RESET_PIN, RESET);
-//  HAL_Delay(1);
-  TIMEOUT_delay_ms(1);
-//  GPIO_WriteBit(BSP_WIFI_RESET_PORT, BSP_WIFI_RESET_PIN, SET);
-//  HAL_Delay(100);
-  TIMEOUT_delay_ms(100);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(BSP_WIFI_RESET_PORT, BSP_WIFI_RESET_PIN, GPIO_PIN_RESET);
+	HAL_Delay(1);
+	HAL_GPIO_WritePin(BSP_WIFI_RESET_PORT, BSP_WIFI_RESET_PIN, GPIO_PIN_SET);
+	HAL_Delay(100);
 }
-
 /******************************************************//**
 * @brief Create a file in the wifi module RAM and open it in append mode
 * @param fileName file name
@@ -1109,47 +1043,49 @@ void BspWifi_Restart(void)
 **********************************************************/
 uint8_t BspWifi_CreateFileInWifiModuleRam(const char* fileName,\
  uint16_t fileSizeWithoutHttpHeader)
+
 {
 	BspWifiDataType *pWifi = &gBspWifiData;
-	char s[10+WIFI_FILE_NAME_LENGTH+8] = "AT+S.FSD=/";
-	char configFileTop[] = "HTTP/1.0 200 OK\r\nServer: MyProduct\r\nConnection: close\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
-	char* ptr;
-	uint16_t fileSize = strlen(configFileTop)+fileSizeWithoutHttpHeader;
+	char s[10 + WIFI_FILE_NAME_LENGTH + 8] = "AT+S.FSD=/";
+	char configFileTop[] =
+			"HTTP/1.0 200 OK\r\nServer: MyProduct\r\nConnection: close\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
+	char *ptr;
+	uint16_t fileSize = strlen(configFileTop) + fileSizeWithoutHttpHeader;
 
 	if (strlen(fileName) > WIFI_FILE_NAME_LENGTH)
 		return BSP_WIFI_FILE_NAME_TOO_LONG;
 	if (fileSize > WIFI_FILE_MAX_SIZE)
 		return BSP_WIFI_FILE_SIZE_TOO_BIG;
-	if (pWifi->mode == WIFI_DATA_MODE_AND_GCODE_PARSER)
-	{
+	if (pWifi->mode == WIFI_DATA_MODE_AND_GCODE_PARSER) {
 		/* Escape from data mode */
 		pWifi->mode = WIFI_DATA_MODE;
-		BspWifi_ParseTxBytes("AT+S.\r", strlen("AT+S.\r"), BSP_WIFI_SOURCE_IS_PLATFORM);
-		while (pWifi->mode!=WIFI_COMMAND_MODE);
-	}
-	else
-	{
+		BspWifi_ParseTxBytes("AT+S.\r", strlen("AT+S.\r"),
+				BSP_WIFI_SOURCE_IS_PLATFORM);
+		while (pWifi->mode != WIFI_COMMAND_MODE)
+			;
+	} else {
 		pWifi->mode = WIFI_COMMAND_MODE;
 	}
 	/* Delete the file in the WIFI module RAM if any */
 	strcat(s, fileName);
-	strcat(s,"\r\n");
+	strcat(s, "\r\n");
 	BspWifi_ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
-	while (pWifi->commandPending!=0);
+	while (pWifi->commandPending != 0)
+		;
 	/* Create the file in the WIFI module RAM */
 	strcpy(s, "AT+S.FSC=/");
 	strcat(s, fileName);
 	ptr = s + strlen(s);
-	sprintf(ptr, ",%d\r\n",WIFI_FILE_MAX_SIZE);
+	sprintf(ptr, ",%d\r\n", WIFI_FILE_MAX_SIZE);
 	BspWifi_ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
-	while (pWifi->commandPending!=0)
-	/* Append the file in the WIFI module RAM */
-	strcpy(s, "AT+S.FSA=/");
+	while (pWifi->commandPending != 0)
+		/* Append the file in the WIFI module RAM */
+		strcpy(s, "AT+S.FSA=/");
 	strcat(s, fileName);
 	ptr = s + strlen(s);
-	sprintf(ptr, ",%d\r\n",fileSize);
+	sprintf(ptr, ",%d\r\n", fileSize);
 	BspWifi_ParseTxBytes(s, strlen(s), BSP_WIFI_SOURCE_IS_PLATFORM);
-	BspWifi_ParseTxBytes(configFileTop, strlen(configFileTop),\
+	BspWifi_ParseTxBytes(configFileTop, strlen(configFileTop),
 	BSP_WIFI_SOURCE_IS_PLATFORM);
 
 	return BSP_WIFI_FILE_CREATION_OK;

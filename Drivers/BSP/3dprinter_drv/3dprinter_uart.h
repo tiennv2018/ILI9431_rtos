@@ -14,7 +14,10 @@
 #endif
 
 //#include "stm32f10x.h"
-#include "stm32f1xx.h"
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_gpio.h"
+#include "stm32f1xx_hal_dma.h"
+#include "stm32f1xx_hal_uart.h"
 
 /* Exported macros ------------------------------------------------------------*/
 #define UART_TX_BUFFER_SIZE (2048)
@@ -37,9 +40,9 @@ typedef struct {
 	volatile uint16_t nbTxBytesOnGoing;
 	volatile ITStatus rxBusy;
 	volatile ITStatus txBusy;
-	void (*uartRxDataCallback)(uint8_t *,uint8_t);
+	void (*uartRxDataCallback)(uint8_t*, uint8_t);
 	void (*uartTxDoneCallback)(void);
-//	UART_HandleTypeDef handle;
+	UART_HandleTypeDef handle;
 	uint32_t debugNbRxFrames;
 	uint32_t debugNbTxFrames;
 	volatile uint32_t nbBridgedBytes;

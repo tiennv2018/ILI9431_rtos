@@ -53,7 +53,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 //#include "stm32f4xx_nucleo.h"
-#include "stm32f1xx.h"
+#include "stm32f1xx_hal.h"
 
 /** @addtogroup BSP
   * @{
@@ -148,7 +148,7 @@
 #define BSP_MOTOR_CONTROL_BOARD_TIMER_PWM_E1_FREQ_RESCALER    (1)
 
 /// Timer used for PWM_E2
-#define BSP_MOTOR_CONTROL_BOARD_TIMER_PWM_E2                  (TIM9)
+#define BSP_MOTOR_CONTROL_BOARD_TIMER_PWM_E2                  (TIM5)
 /// Channel Timer used for PWM_E2
 #define BSP_MOTOR_CONTROL_BOARD_CHAN_TIMER_PWM_E2             (TIM_CHANNEL_1)
 /// HAL Active Channel Timer used for PWM_E2
@@ -165,7 +165,7 @@
 #define BSP_MOTOR_CONTROL_BOARD_TIMER_PWM_E2_FREQ_RESCALER    (1)
 
 /// Timer used for PWM_E3
-#define BSP_MOTOR_CONTROL_BOARD_TIMER_PWM_E3                  (TIM10)
+#define BSP_MOTOR_CONTROL_BOARD_TIMER_PWM_E3                  (TIM6)
 /// Channel Timer used for PWM_E3
 #define BSP_MOTOR_CONTROL_BOARD_CHAN_TIMER_PWM_E3             (TIM_CHANNEL_1)
 /// HAL Active Channel Timer used for PWM_E3

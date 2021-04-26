@@ -68,7 +68,6 @@ void PROCESS_app(void)
 
 void LCD0_Task(void * pvParameters)
 {
-
 	while (1)
 	{
 		PROCESS_led();

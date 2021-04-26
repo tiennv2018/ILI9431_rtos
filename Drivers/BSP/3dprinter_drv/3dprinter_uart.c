@@ -13,37 +13,56 @@
 
 
 #define UART_ERROR_TAG        (0x1000)
-//#define UART_ERROR(error)     BSP_MiscErrorHandler(error|UART_ERROR_TAG)
+#define UART_ERROR(error)     //BSP_MiscErrorHandler(error|UART_ERROR_TAG)
+
+#ifdef USE_XONXOFF
+#define BSP_UART_GET_NB_BYTES_IN_RX_BUFFER()  ((gBspUartData.pRxReadBuffer <= gBspUartData.pRxWriteBuffer)? \
+                                    ( (unsigned int )(gBspUartData.pRxWriteBuffer - gBspUartData.pRxReadBuffer)): \
+                                    ( (unsigned int )(gBspUartData.pRxWriteBuffer + UART_RX_BUFFER_SIZE - gBspUartData.pRxReadBuffer)))
+
+
+#define BSP_UART_GET_NB_BYTES_IN_TX_BUFFER()  ((gBspUartData.pTxReadBuffer <= gBspUartData.pTxWriteBuffer)? \
+                                    ( (unsigned int )(gBspUartData.pTxWriteBuffer - gBspUartData.pTxReadBuffer)): \
+                                    ( (unsigned int )(gBspUartData.pTxWriteBuffer + UART_TX_BUFFER_SIZE - gBspUartData.pTxReadBuffer)))
+
+
+#define BSP_UART_TX_THRESHOLD_XOFF  (UART_TX_BUFFER_SIZE / 50)
+#define BSP_UART_TX_THRESHOLD_XON   (UART_TX_BUFFER_SIZE / 100)
+#define BSP_UART_RX_THRESHOLD_XOFF  (UART_RX_BUFFER_SIZE / 2)
+#define BSP_UART_RX_THRESHOLD_XON   (UART_RX_BUFFER_SIZE / 3)
+#endif
 
 uint8_t gBspUartTxBuffer[2 * UART_TX_BUFFER_SIZE]; // real size is double to easily handle memcpy and tx uart
 uint8_t gBspUartRxBuffer[2 * UART_RX_BUFFER_SIZE];
 
+#ifdef USE_XONXOFF
+static uint8_t  BspUartXonXoff = 0;
+static uint8_t BspUartXoffBuffer[12] = " SEND XOFF\n";
+static uint8_t BspUartXonBuffer[11] = " SEND XON\n";
+#endif
+
+BspUartDataType gBspUartData;
+
 void BspUart_HwInit(uint32_t newBaudRate)
 {
+	BspUartDataType *pUart = &gBspUartData;
 
-//	USART_InitTypeDef		UART_InitStructure;
-//	NVIC_InitTypeDef		NVIC_InitStructure;
-//
-//    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
-//
-//    UART_InitStructure.USART_BaudRate 	= newBaudRate;
-//	UART_InitStructure.USART_WordLength = USART_WordLength_8b;
-//	UART_InitStructure.USART_StopBits 	= USART_StopBits_1;
-//	UART_InitStructure.USART_Parity 	= USART_Parity_No;
-//	UART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-//	UART_InitStructure.USART_Mode 		= USART_Mode_Rx | USART_Mode_Tx;
-//	USART_Init(USART1, &UART_InitStructure);
-//
-//	USART_Cmd(BSP_UART_DEBUG, ENABLE);
-//	USART_ClearFlag(BSP_UART_DEBUG, USART_FLAG_RXNE);
-//
-//    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
-//    USART_ClearFlag(USART1, USART_IT_RXNE);
-//    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+	pUart->handle.Instance = BSP_UART_DEBUG;
+	pUart->handle.Init.BaudRate = newBaudRate;
+	pUart->handle.Init.WordLength = UART_WORDLENGTH_8B;
+	pUart->handle.Init.StopBits = UART_STOPBITS_1;
+	pUart->handle.Init.Parity = UART_PARITY_NONE;
+	pUart->handle.Init.Mode = UART_MODE_TX_RX;
+	pUart->handle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	pUart->handle.Init.OverSampling = UART_OVERSAMPLING_16;
+
+	if (HAL_UART_DeInit(&pUart->handle) != HAL_OK) {
+		UART_ERROR(1);
+	}
+
+	if (HAL_UART_Init(&pUart->handle) != HAL_OK) {
+		UART_ERROR(2);
+	}
 }
 
 void BspUart_IfStart(void)
@@ -68,8 +87,9 @@ void BspUart_IfStart(void)
 	pUart->nbBridgedBytes 	= 0;
 	pUart->gCodeDataMode 	= 0;
 
-	if(BspUart_Receive_IT((uint8_t *)(&pUart->rxWriteChar), 1) != SUCCESS){
-//		UART_ERROR(3);
+	if (HAL_UART_Receive_IT(&pUart->handle, (uint8_t *)(&pUart->rxWriteChar), 1) != HAL_OK)
+	{
+		UART_ERROR(3);
 	}
 	pUart->rxBusy = SET;
 }
@@ -137,7 +157,7 @@ void BspUart_IfSendQueuedData(void)
 			BspUartXoffBuffer[0] = 0x13;
 		if (HAL_UART_Transmit_IT(&pUart->handle, (uint8_t *)&BspUartXoffBuffer, sizeof(BspUartXoffBuffer))!= HAL_OK)
 		{
-//			UART_ERROR(10);
+			UART_ERROR(10);
 		}
 			BspUartXonXoff = 3;
 			return;
@@ -151,7 +171,7 @@ void BspUart_IfSendQueuedData(void)
 
 			if (HAL_UART_Transmit_IT(&pUart->handle, (uint8_t *)&BspUartXonBuffer, sizeof(BspUartXonBuffer))!= HAL_OK)
 			{
-//				UART_ERROR(11);
+				UART_ERROR(11);
 			}
 			BspUartXonXoff = 0;
 			return;
@@ -180,9 +200,9 @@ void BspUart_IfSendQueuedData(void)
 		pUart->nbTxBytesOnGoing = nbTxBytes;
 
 		//use of HAL_UART_Transmit_IT is safe as real buffer size is 2 * UART_TX_BUFFER_SIZE
-		if(BspUart_Transmit_IT((uint8_t *) pUart->pTxReadBuffer, nbTxBytes)!= SUCCESS)
+		if(HAL_UART_Transmit_IT(&pUart->handle, (uint8_t *) pUart->pTxReadBuffer, nbTxBytes)!= HAL_OK)
 		{
-//			UART_ERROR(5);
+		UART_ERROR(5);
 		}
 
 		pUart->debugNbTxFrames++;
@@ -251,7 +271,7 @@ uint32_t BspUart_Printf(const char* format,...)
 	{
 		if ( size > (uint32_t)nbFreeBytes )
 		{
-//			UART_ERROR(9);
+			UART_ERROR(9);
 		}
 	pUart->pTxWriteBuffer += size;
 	if (pUart->pTxWriteBuffer >= pUart->pTxBuffer + UART_TX_BUFFER_SIZE)
@@ -393,8 +413,9 @@ uint32_t BspUart_CommandsFilter(char *pBufCmd, uint8_t nxRxBytes)
 
 void BspUart_LockingTx(uint8_t *pBuf, uint8_t nbData)
 {
-//   BspUartDataType *pUart = &gBspUartData;
-   Transmit_IT(pBuf, nbData);
+	BspUartDataType *pUart = &gBspUartData;
+
+	HAL_UART_Transmit(&pUart->handle, pBuf, nbData, 1000);
 }
 
 

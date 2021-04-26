@@ -13,6 +13,10 @@
 #endif
  /* Includes ---------------------------------------------------------------*/
 #include "stm32f1xx.h"
+#include "stm32f1xx_hal_gpio.h"
+#include "stm32f1xx_hal_dma.h"
+#include "stm32f1xx_hal_uart.h"
+
 
 /* Exported macros -----------------------------------------------------------*/
 
@@ -29,7 +33,7 @@
 #define BSP_WIFI_RESET_PORT             (GPIOE)
 
 /// GPIO Pin used for the WIFI wakeup pin
-#define BSP_WIFI_WAKEUP_PIN             //(GPIO_PIN_5)
+#define BSP_WIFI_WAKEUP_PIN             (GPIO_PIN_5)
 /// GPIO Port used for the WIFI wakeup pin
 #define BSP_WIFI_WAKEUP_PORT            (GPIOB)
 
@@ -110,9 +114,9 @@
 
 typedef struct BspWifiDataTag
 {
-//		UART_HandleTypeDef uartHandle;
-//		DMA_HandleTypeDef rxDmaHandle;
-//		DMA_HandleTypeDef txDmaHandle;
+	UART_HandleTypeDef uartHandle;
+	DMA_HandleTypeDef rxDmaHandle;
+	DMA_HandleTypeDef txDmaHandle;
 	volatile uint8_t txFlag;
 	uint8_t *pRxBuffer;
 	uint8_t *pRxWriteBuffer;
@@ -127,15 +131,15 @@ typedef struct BspWifiDataTag
 	uint8_t fileCreationPending;
 	uint32_t lastTime;
 	uint32_t replyCounter;
-//#if defined(PROD_TEST)
+#if defined(PROD_TEST)
 	uint8_t fwUpdatePending;
 	int8_t fsUpdatePending;
 	char currentFwVersion[14+1];
 	char expectedFwVersion[14+1];
 	char expectedFsVersion[21+1];
-//#endif //#if defined(PROD_TEST)
+#endif //#if defined(PROD_TEST)
 	char wepKey[13+1];
-  char ssid[32+1];
+	char ssid[32+1];
 }BspWifiDataType;
 
 
